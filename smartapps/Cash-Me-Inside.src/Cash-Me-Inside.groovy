@@ -1,16 +1,46 @@
 definition(
     name: "Cash Me Inside",
-    namespace: "None",
-    author: "FryAllenEthan",
+    namespace: "FryAllenEthan",
+    author: "FryAllenEthan, TechWithJake",
     description: "Turn on a virtual switches that corelate to your room location ",
     iconUrl: "http://i.imgur.com/HU0ANBp.png",
     iconX2Url: "http://i.imgur.com/HU0ANBp.png",
     iconX3Url: "http://i.imgur.com/HU0ANBp.png",
     )
 
-
-
 preferences {
+ page(name: "appSetup")
+ page(name: "credentialsSetup")
+ page(name: "switchSetup")
+}
+
+def appSetup(){
+  dynamicPage(name: "appSetup", title: "FIND Setup", install: true, uninstall: true) {
+  section("FIND Credentials Setup"){
+    href(name: "toCredentialsSetup", page: "credentialsSetup", title: "Your FIND Credentials", description: "Set Your FIND Credentials")
+  }
+  section("Select Your Area Switches"){
+    href(name: "toSwitchSetup", page: "switchSetup", title: "Select Your Area Switches", description: "Select Your Area Switches")
+  }
+}
+}
+
+def credentialsSetup(){
+  dynamicPage(name: "credentialsSetup", title: "FIND Credentials Setup", nextPage: "appSetup") {
+  section("Your FIND Server"){
+      input "findUri", "text", title: "FIND Server", default: "http://ml2.internalpositioning.com/",  description: "Enter in your FIND Server", required: true
+  }
+  section("Your FIND Group"){
+      input "findGroup", "text", title: "FIND Group", description: "Enter in your FIND Group", required: true
+  }
+  section("Your FIND Group"){
+      input "findUser", "text", title: "FIND User", description: "Enter in your FIND User", required: true
+  }
+}
+}
+
+def switchSetup() {
+    dynamicPage(name: "switchSetup", title: "Select Your Area Switches", nextPage: "appSetup") {
 	section("Please Select the Switch for the Bed Location") {
     	input "bedSwitch", "capability.switch"
         }
@@ -24,11 +54,6 @@ preferences {
     	input "kitchenSwitch", "capability.switch"
         }
 }
-
-
-def installed() {
-    log.debug "Installed with settings: ${settings}"
-    initialize()
 }
 
 
@@ -46,10 +71,10 @@ def initialize() {
 def whatRoom() {
 
     def params = [
-    	uri:  'http://ml2.internalpositioning.com/',
+    	uri:  "${findUri}",
     	path: 'location',
     	contentType: 'application/json',
-    	query: [group:'GROUPNAME', user: 'USERNAME']
+    	query: [group: "${findGroup}", user: "${findUser}"]
 	]
 
 
@@ -59,9 +84,9 @@ def whatRoom() {
             //log.debug "response data: ${resp.data}"
             log.debug "Data: ${resp.data}"
             //log.debug "response contentType: ${resp.contentType}"
-            log.debug "room: ${resp.data.users.USERNAME[0].location}"
-            //def location = resp.data.users.USERNAME[0].location
-            return resp.data.users.USERNAME[0].location
+            log.debug "room: ${resp.data.users."${findUser}"[0].location}"
+            //def location = resp.data.users."${findUser}"[0].location
+            return resp.data.users."${findUser}"[0].location
         }
     } catch (e) {
         log.error "something went wrong: $e"
