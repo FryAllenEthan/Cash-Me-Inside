@@ -16,6 +16,9 @@ preferences {
 
 def appSetup(){
   dynamicPage(name: "appSetup", title: "FIND Setup", install: true, uninstall: true) {
+    section("FIND Description"){
+      paragraph: "FIND is the framework for internal navigation and discovery."
+    }
     section("FIND Credentials Setup"){
       href(name: "toCredentialsSetup", page: "credentialsSetup", title: "Your FIND Credentials", description: "Set Your FIND Credentials")
     }
