@@ -59,9 +59,9 @@ def whatRoom() {
             //log.debug "response data: ${resp.data}"
             log.debug "Data: ${resp.data}"
             //log.debug "response contentType: ${resp.contentType}"
-            log.debug "room: ${resp.data.users.lozaning[0].location}"
-            //def location = resp.data.users.lozaning[0].location
-            return resp.data.users.lozaning[0].location
+            log.debug "room: ${resp.data.users.USERNAME[0].location}"
+            //def location = resp.data.users.USERNAME[0].location
+            return resp.data.users.USERNAME[0].location
         }
     } catch (e) {
         log.error "something went wrong: $e"
