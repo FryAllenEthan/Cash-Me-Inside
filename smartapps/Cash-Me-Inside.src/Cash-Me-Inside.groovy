@@ -49,7 +49,7 @@ def whatRoom() {
     	uri:  'http://ml2.internalpositioning.com/',
     	path: 'location',
     	contentType: 'application/json',
-    	query: [group:'monstrousmeerkat', user: 'lozaning']
+    	query: [group:'GROUPNAME', user: 'USERNAME']
 	]
 
 
