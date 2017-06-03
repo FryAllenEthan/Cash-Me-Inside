@@ -1,7 +1,7 @@
 definition(
     name: "Cash Me Inside",
     namespace: "None",
-    author: "Ethan",
+    author: "FryAllenEthan",
     description: "Turn on a virtual switches that corelate to your room location ",
     iconUrl: "http://i.imgur.com/HU0ANBp.png",
     iconX2Url: "http://i.imgur.com/HU0ANBp.png",
@@ -44,15 +44,15 @@ def initialize() {
 
 
 def whatRoom() {
-    
+
     def params = [
     	uri:  'http://ml2.internalpositioning.com/',
     	path: 'location',
     	contentType: 'application/json',
     	query: [group:'monstrousmeerkat', user: 'lozaning']
 	]
-     
-    
+
+
     try {
         httpGet(params) { resp ->
         	log.debug "response status code: ${resp.status}"
@@ -66,15 +66,15 @@ def whatRoom() {
     } catch (e) {
         log.error "something went wrong: $e"
         return
-        
+
     }
-	
+
     //return location
-    
+
 }
 
 def roomHandler() {
-	
+
     def room = whatRoom()
     log.debug "Reported location is: ${room}"
     if (room == "bed") {
@@ -102,3 +102,4 @@ def roomHandler() {
     		bedSwitch.off()
         	log.debug "Turning the kitchen switch on"
     	}
+}
