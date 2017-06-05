@@ -33,7 +33,7 @@ def credentialsSetup(){
   section("Your FIND Group"){
       input "findGroup", "text", title: "FIND Group", description: "Enter in your FIND Group", required: true
   }
-  section("Your FIND Group"){
+  section("Your FIND User"){
       input "findUser", "text", title: "FIND User", description: "Enter in your FIND User", required: true
   }
 }
