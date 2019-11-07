@@ -38,11 +38,20 @@ def credentialsSetup(){
   }
   section("Your FIND User"){
       input "findUser", "text", title: "FIND User", description: "Enter in your FIND User", required: true
-    }
+  }
+  section("Family"){
+      input "family", "text", title: "Family", description: "Enter your Family Name", required: true
+  }
+  section("Device"){
+      input "device", "text", title: "Device", description: "Enter in your Device Name", required: true
+  }
+
   }
 }
 
+
 def switchSetup() {
+    getRooms()
   dynamicPage(name: "switchSetup", title: "Select Your Area Switches", nextPage: "appSetup") {
 	  section("Please Select the Switch for the Bed Location") {
       input "bedSwitch", "capability.switch"
@@ -125,4 +134,26 @@ def roomHandler() {
     	bedSwitch.off()
       log.debug "Turning the kitchen switch on"
     }
+}
+
+def getRooms() {
+    def params = [
+        uri:  "${findUri}",
+        path: "/api/v1/location/",
+        contentType: 'application/json',
+        query: [group: "riverplace", user: "pixel3"]
+    ]
+
+    try {
+        httpGet(params) { resp ->
+            log.debug "response status code: ${resp.status}"
+            log.debug "response data: ${resp.data}"
+            //return resp.data.users."${findUser}"[0].location
+            log
+        }
+    } catch (e) {
+        log.error "something went wrong: $e"
+        return
+    }
+    //return location
 }
