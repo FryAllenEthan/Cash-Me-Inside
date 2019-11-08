@@ -1,159 +1,153 @@
 definition(
-    name: "Cash Me Inside",
-    namespace: "FryAllenEthan",
-    author: "FryAllenEthan, TechWithJake",
-    description: "Turn on a virtual switches that corelate to your room location ",
-    iconUrl: "https://raw.githubusercontent.com/FryAllenEthan/Cash-Me-Inside/master/smartapps/Cash-Me-Inside.src/compass.png",
-    iconX2Url: "https://raw.githubusercontent.com/FryAllenEthan/Cash-Me-Inside/master/smartapps/Cash-Me-Inside.src/compass.png",
-    iconX3Url: "https://raw.githubusercontent.com/FryAllenEthan/Cash-Me-Inside/master/smartapps/Cash-Me-Inside.src/compass.png",
-    )
+        name: "Cash Me Inside",
+        namespace: "FryAllenEthan",
+        author: "FryAllenEthan, TechWithJake",
+        description: "Turn on a virtual switches that corelate to your room location ",
+        iconUrl: "https://raw.githubusercontent.com/FryAllenEthan/Cash-Me-Inside/master/smartapps/Cash-Me-Inside.src/compass.png",
+        iconX2Url: "https://raw.githubusercontent.com/FryAllenEthan/Cash-Me-Inside/master/smartapps/Cash-Me-Inside.src/compass.png",
+        iconX3Url: "https://raw.githubusercontent.com/FryAllenEthan/Cash-Me-Inside/master/smartapps/Cash-Me-Inside.src/compass.png",
+)
 
 preferences {
- page(name: "appSetup")
- page(name: "credentialsSetup")
- page(name: "switchSetup")
+    page(name: "appSetup")
+    page(name: "credentialsSetup")
+    page(name: "switchSetup")
 }
 
 def appSetup(){
-  dynamicPage(name: "appSetup", title: "FIND Setup", install: true, uninstall: true) {
-    section("FIND Description"){
-      paragraph "FIND is the framework for internal navigation and discovery."
+    dynamicPage(name: "appSetup", title: "FIND Setup", install: true, uninstall: true) {
+        section("FIND Description"){
+            paragraph "FIND is the framework for internal navigation and discovery."
+        }
+        section("FIND Credentials Setup"){
+            href(name: "toCredentialsSetup", page: "credentialsSetup", title: "Your FIND Credentials", description: "Set Your FIND Credentials")
+        }
+        section("Select Your Area Switches"){
+            href(name: "toSwitchSetup", page: "switchSetup", title: "Select Your Area Switches", description: "Select Your Area Switches")
+        }
     }
-    section("FIND Credentials Setup"){
-      href(name: "toCredentialsSetup", page: "credentialsSetup", title: "Your FIND Credentials", description: "Set Your FIND Credentials")
-    }
-    section("Select Your Area Switches"){
-      href(name: "toSwitchSetup", page: "switchSetup", title: "Select Your Area Switches", description: "Select Your Area Switches")
-    }
-  }
 }
 
 def credentialsSetup(){
-  dynamicPage(name: "credentialsSetup", title: "FIND Credentials Setup", nextPage: "appSetup") {
-    section("Your FIND Server"){
-      input "findUri", "text", title: "FIND Server", default: "http://ml2.internalpositioning.com/",  description: "Enter in your FIND Server", required: true
-    }
-    section("Your FIND Group"){
-      input "findGroup", "text", title: "FIND Group", description: "Enter in your FIND Group", required: true
-  }
-  section("Your FIND User"){
-      input "findUser", "text", title: "FIND User", description: "Enter in your FIND User", required: true
-  }
-  section("Family"){
-      input "family", "text", title: "Family", description: "Enter your Family Name", required: true
-  }
-  section("Device"){
-      input "device", "text", title: "Device", description: "Enter in your Device Name", required: true
-  }
+    dynamicPage(name: "credentialsSetup", title: "FIND Credentials Setup", nextPage: "appSetup") {
+        section("Your FIND Server"){
+            input "findUri", "text", title: "FIND Server", default: "http://ml2.internalpositioning.com/",  description: "Enter in your FIND Server", required: true
+        }
+        section("Your FIND Group"){
+            input "findGroup", "text", title: "FIND Group", description: "Enter in your FIND Group", required: true
+        }
+        section("Your FIND User"){
+            input "findUser", "text", title: "FIND User", description: "Enter in your FIND User", required: true
+        }
 
-  }
+    }
 }
 
 
 def switchSetup() {
-    getRooms()
-  dynamicPage(name: "switchSetup", title: "Select Your Area Switches", nextPage: "appSetup") {
-	  section("Please Select the Switch for the Bed Location") {
-      input "bedSwitch", "capability.switch"
+    def rooms = getRooms()
+    dynamicPage(name: "switchSetup", title: "Select Your Area Switches", nextPage: "appSetup") {
+        rooms.each{
+
+
+            section("Please Select the Switch for the ${it} Location") {
+                input "Switch${it}", "capability.switch"
+            }
+        }
     }
-	  section("Please Select the Switch for the Desk Location") {
-    	input "deskSwitch", "capability.switch"
-    }
-	  section("Please Select the Switch for the Bathroom Location") {
-    	input "bathroomSwitch", "capability.switch"
-    }
-	  section("Please Select the Switch for the Kitchen Location") {
-    	input "kitchenSwitch", "capability.switch"
-    }
-  }
 }
 
 
 def updated() {
-  log.debug "Updated with settings: ${settings}"
-  initialize()
+    log.debug "Updated with settings: ${settings}"
+    initialize()
 }
 
 
 def initialize() {
-  runEvery1Minute(roomHandler)
+    runEvery1Minute(roomHandler)
 }
 
 
 def whatRoom() {
-  def params = [
-    uri:  "${findUri}",
-    path: 'location',
-    contentType: 'application/json',
-    query: [group: "${findGroup}", user: "${findUser}"]
-	]
-
-
-  try {
-    httpGet(params) { resp ->
-      log.debug "response status code: ${resp.status}"
-      //log.debug "response data: ${resp.data}"
-      log.debug "Data: ${resp.data}"
-      //log.debug "response contentType: ${resp.contentType}"
-      log.debug "room: ${resp.data.users."${findUser}"[0].location}"
-      //def location = resp.data.users."${findUser}"[0].location
-      return resp.data.users."${findUser}"[0].location
-    }
-  } catch (e) {
-      log.error "something went wrong: $e"
-      return
-    }
-    //return location
-}
-
-def roomHandler() {
-  def room = whatRoom()
-    log.debug "Reported location is: ${room}"
-    if (room == "bed") {
-		  deskSwitch.off()
-      bathroomSwitch.off()
-      kitchenSwitch.off()
-    	bedSwitch.on()
-    	log.debug "Turning the bed switch on"
-	} else if (room == "kitchen") {
-    	deskSwitch.off()
-      bathroomSwitch.off()
-      kitchenSwitch.on()
-    	bedSwitch.off()
-      log.debug "Turning the kitchen switch on"
-	} else if (room == "desk") {
-    	deskSwitch.on()
-      bathroomSwitch.off()
-      kitchenSwitch.off()
-    	bedSwitch.off()
-      log.debug "Turning the desk switch on"
-	} else if (room == "bathroom") {
-    	deskSwitch.off()
-      bathroomSwitch.off()
-      kitchenSwitch.on()
-    	bedSwitch.off()
-      log.debug "Turning the kitchen switch on"
-    }
-}
-
-def getRooms() {
     def params = [
-        uri:  "${findUri}",
-        path: "/api/v1/location/",
-        contentType: 'application/json',
-        query: [group: "riverplace", user: "pixel3"]
+            uri:  "${findUri}",
+            path: 'location',
+            contentType: 'application/json',
+            query: [group: "${findGroup}", user: "${findUser}"]
     ]
+
 
     try {
         httpGet(params) { resp ->
             log.debug "response status code: ${resp.status}"
-            log.debug "response data: ${resp.data}"
-            //return resp.data.users."${findUser}"[0].location
-            log
+            //log.debug "response data: ${resp.data}"
+            log.debug "Data: ${resp.data}"
+            //log.debug "response contentType: ${resp.contentType}"
+            log.debug "room: ${resp.data.users."${findUser}"[0].location}"
+            //def location = resp.data.users."${findUser}"[0].location
+            return resp.data.users."${findUser}"[0].location
         }
     } catch (e) {
         log.error "something went wrong: $e"
         return
     }
     //return location
+}
+
+def roomHandler() {
+    def room = whatRoom()
+    log.debug "Reported location is: ${room}"
+    if (room == "bed") {
+        deskSwitch.off()
+        bathroomSwitch.off()
+        kitchenSwitch.off()
+        bedSwitch.on()
+        log.debug "Turning the bed switch on"
+    } else if (room == "kitchen") {
+        deskSwitch.off()
+        bathroomSwitch.off()
+        kitchenSwitch.on()
+        bedSwitch.off()
+        log.debug "Turning the kitchen switch on"
+    } else if (room == "desk") {
+        deskSwitch.on()
+        bathroomSwitch.off()
+        kitchenSwitch.off()
+        bedSwitch.off()
+        log.debug "Turning the desk switch on"
+    } else if (room == "bathroom") {
+        deskSwitch.off()
+        bathroomSwitch.off()
+        kitchenSwitch.on()
+        bedSwitch.off()
+        log.debug "Turning the kitchen switch on"
+    }
+}
+
+def getRooms() {
+    def locList = []
+    def notNull = true
+    def locNumber = 0
+    def params = [
+            uri:  "http://68.47.45.150:8005/api/v1/location/riverplace/pixel3",
+            contentType: 'application/json'
+    ]
+
+    try {
+        httpGet(params) { resp ->
+
+            def locations = resp.data.analysis.location_names
+            log.debug "locations: ${locations}"
+            for(int i = 0; i<5; i++)
+            {
+                locList.add(resp.data.analysis.location_names.("${i}"))
+            }
+            log.debug locList
+        }
+    } catch (e) {
+        log.error "something went wrong: $e"
+        return null
+    }
+    return locList
 }
